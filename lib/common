@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+printonfail() {
+  $@
+  ret=$?
+  if [[ $ret -ne 0 ]]; then
+    echo "failed on '$*'" >&2
+    return 0
+  fi
+  return 1
+}
+
+yprompt() {
+  while true; do
+    read -p "$1 [Y|n]:"
+    if [[ -z "$REPLY" ]] || [[ "$REPLY" =~ ^[Yy]$ ]]; then
+      return 0
+    elif [[ "$REPLY" =~ ^[Nn]$ ]]; then
+      return 1
+    fi
+  done
+}

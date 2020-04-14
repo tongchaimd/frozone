@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+oldsql() {
+  mysql -h cluster-sql.monetoring.com -u m_sea_viewer --port=3300 --password={BU=*tTH7i1mC,w[ $@
+}
+
+oldsqlf() {
+  oldsql -A monetoring_sea
+}
+
+gitnuke() {
+  git stash push -u
+  git stash drop stash@{0}
+}
+export dcompose="$HOME/Developers/docker-compose.yml"

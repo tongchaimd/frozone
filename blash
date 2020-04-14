@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+if [[ -z "$BLASH_PATH" ]]; then
+  BLASH_PATH="$HOME/frozone"
+  export BLASH_PATH
+fi
+
+source "$BLASH_PATH/lib/common"
+
+localblash="$BLASH_PATH/localblash"
+if [[ -e "$localblash" ]]; then
+  source "$localblash"
+fi
+
+if [ -d "$BLASH_PATH/etc" ]; then
+  for i in $BLASH_PATH/etc/*; do
+    if [[ -r $i && -x $i ]]; then
+      . $i
+    fi
+  done
+  unset i
+fi
+
+whosonport() {
+  ss -plt src :$1
+}
+
+leet() {
+  target=""
+  tardir=""
+  if [[ -z "$1" ]]; then
+    echo "$1"
+    echo "Need a path."
+    return 1
+  else
+    target="$1"
+    tardir=$(dirname "$1")
+  fi
+  if [[ -e "$target" ]]; then
+    echo "File already exists!!"
+    return 1
+  fi
+  if [[ ! -d "$tardir" && ! -L "$tardir" ]]; then
+    yprompt "mkdir?" || return 1
+    printonfail mkdir -p "$tardir" && return 1
+  fi
+  printonfail touch "$target" && return 1
+  printonfail chmod +x "$target" && return 1
+  echo '#!/usr/bin/env bash' > "$target"
+}
+
+gitnuke() {
+  git stash push -u
+  git stash drop stash@{0}
+}
+
+alias reloaded=". ~/.bashrc"
+alias deleteswap="find . -type f -name "*.sw[klmnop]" -delete"
+
+export PATH="$PATH:$BLASH_PATH/bin"

@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+
+exec {vfd}>/dev/null
+while getopts "v" o; do
+  case "${o}" in
+    v)
+      exec {vfd}>&1
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
+shift $((OPTIND-1))
+echo "apt-get update"
+sudo apt-get update >&$vfd
+
+myinstall() {
+  echo "installing $1"
+  return 0
+}
+
+nocommand() {
+  ! $(type "$1" &>/dev/null)
+}
+
+installifnocmd() {
+  pkg="$1"
+  cmdln="$2"
+  if [[ -z "$cmdln" ]]; then
+    cmdln="$pkg"
+  fi
+  if nocommand "$cmdln"; then
+    myinstall "$pkg ($cmdln)" || return 1
+  else
+    echo "skip $pkg (already has $pkg)"
+    return 1
+  fi
+}
+
+aptinstallifnocmd() {
+  installifnocmd $@ && sudo apt-get install -y "$pkg" >&$vfd
+}
+
+aptinstall() {
+  myinstall $@ && sudo apt-get install -y "$pkg" >&$vfd
+}
+
+aptinstallifnocmd sudo
+aptinstallifnocmd httpie http
+aptinstallifnocmd vim
+aptinstallifnocmd wget
+aptinstallifnocmd curl
+aptinstallifnocmd git
+aptinstall build-essential
+aptinstall vim-gtk
+installifnocmd tldr && (
+  sudo mkdir -p /bin
+  sudo curl -o /bin/tldr https://raw.githubusercontent.com/raylee/tldr/master/tldr
+  sudo chmod +x /bin/tldr
+) >&vfd
+installifnocmd tmux && (
+  cd /tmp
+  wget https://github.com/libevent/libevent/releases/download/release-2.1.11-stable/libevent-2.1.11-stable.tar.gz
+  tar -xzf libevent-2.1.11-stable.tar.gz
+  cd libevent-2.1.11-stable
+  ./configure --prefix=/usr --disable-static
+  make
+  sudo make install
+  cd /tmp
+  wget https://ftp.gnu.org/pub/gnu/ncurses/ncurses-6.1.tar.gz
+  tar -xzf ncurses-6.1.tar.gz
+  cd ncurses-6.1
+  ./configure --prefix=/usr
+  make
+  sudo make install
+  cd /tmp
+  wget https://github.com/tmux/tmux/releases/download/2.9a/tmux-2.9a.tar.gz
+  tar -xzf tmux-2.9a.tar.gz
+  cd tmux-2.9a
+  ./configure
+  make
+  sudo make install
+)
+#setxkbmap -option 'caps:ctrl_modifier'
+#xcape -e 'Caps_Lock=Escape'
+#verbose fix
+#install firacode
+#capslock mapping
+#mkdir swap vim
+#install vundle
+#build-essential fix
+#clipboard
+#echo 'set completion-ignore-case On' | sudo tee -a /etc/inputrc
+#install ack

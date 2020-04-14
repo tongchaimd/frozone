@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+git stash push -u
+git stash drop stash@{0}

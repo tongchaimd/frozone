@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+ssh -R 3636:localhost:22 tongchaimd@acqui.site

@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+/home/bird/.cabal/bin/agda -i /usr/share/agda-stdlib $@

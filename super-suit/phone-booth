@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+SUPER_SUIT_DIR=$HOME/frozone/super-suit
+homehere=$SUPER_SUIT_DIR/home
+backupdir=$SUPER_SUIT_DIR/backup
+
+main() {
+  setup
+}
+
+setup() {
+  requirewdir $backupdir
+  for filename in $(ls -A $homehere); do
+    homehomefile="$HOME/$filename"
+    if [[ -e $homehomefile ]]; then
+      backup "$homehomefile"
+      removefile "$homehomefile"
+    fi
+    linkhomefile "$filename"
+  done
+}
+
+backup() {
+  printverbose "backing up $1...\n"
+  filename=$(basename "$1")
+  backup_file="$backupdir/${filename}_$(date +%Y-%m-%d_%H-%M-%S-%N)"
+  cp -alr "$1" "$backup_file" || die_err "couldn't create backup file $backup_file"
+}
+
+removefile() {
+  printverbose "removing $1...\n"
+  rm "$1" || die_err "couldn't remove $1"
+}
+
+linkhomefile() {
+  filename="$1"
+  homehomefile="$HOME/$filename"
+  homefilehere="$homehere/$filename"
+  printverbose "linking $homehomefile...\n"
+  ln -s "$homefilehere" "$homehomefile" || die_err "couldn't link $homefilehere to $homehomefile"
+}
+
+exec {vfd}>/dev/null
+while getopts "v" o; do
+  case "${o}" in
+    v)
+      exec {vfd}>&1
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
+shift $((OPTIND-1))
+
+requirewdir() {
+  if [[ ! -e $1 ]]; then
+    mkdir "$1" || die_err "couldn't create required dir $1"
+  elif [[ ! -d $1 ]]; then
+    die_err "a file exists where required dir $1 should be"
+  elif [[ ! -w $1 ]]; then
+    die_err "can't write to dir $1"
+  fi
+}
+
+die_err() {
+  printf >&2 "FAIL: $1\n"
+  exit 1
+}
+
+printverbose() {
+  printf >&$vfd "$@"
+}
+
+main
